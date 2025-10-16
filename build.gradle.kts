@@ -7,6 +7,7 @@ val githubProjectName = "jqwik-team"
 val artifactId = "jqwik-arquillian"
 val moduleGroupId = "net.jqwik"
 val jqwikVersion = "1.9.2"
+val junitPlatformVersion = "1.11.3"
 val arquillianVersion = "1.9.1.Final"
 val shrinkwrapVersion = "1.2.6"
 val assertJVersion = "3.27.0"
@@ -63,6 +64,7 @@ dependencies {
 	api("org.jboss.arquillian.test:arquillian-test-api")
 	api("org.jboss.arquillian.container:arquillian-container-test-api")
 
+	implementation("org.junit.platform:junit-platform-launcher:${junitPlatformVersion}")
 	implementation("org.jboss.arquillian.test:arquillian-test-spi")
 	implementation("org.jboss.arquillian.container:arquillian-container-test-spi")
 	implementation("org.jboss.arquillian.core:arquillian-core-impl-base")
