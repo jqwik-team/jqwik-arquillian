@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<arquillian xmlns="http://jboss.org/schema/arquillian"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://jboss.org/schema/arquillian http://jboss.org/schema/arquillian/arquillian_1_0.xsd">
+
+	<container qualifier="payara-embedded" default="true">
+		<configuration>
+			<property name="bindHttpPort">18080</property>
+			<property name="bindHttpsPort">18181</property>
+			<property name="configurationXml">${payara.domain.xml}</property>
+		</configuration>
+	</container>
+</arquillian>
