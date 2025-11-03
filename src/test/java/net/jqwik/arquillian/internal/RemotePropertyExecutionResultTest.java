@@ -11,6 +11,7 @@
 package net.jqwik.arquillian.internal;
 
 import org.jboss.arquillian.test.spi.*;
+import org.opentest4j.*;
 
 import net.jqwik.api.*;
 import net.jqwik.api.lifecycle.*;
@@ -52,6 +53,8 @@ class RemotePropertyExecutionResultTest {
 		final PropertyExecutionResult result = RemotePropertyExecutionResult.from(TestResult.skipped("assumption"));
 
 		assertThat(result.status()).isEqualTo(PropertyExecutionResult.Status.ABORTED);
+		assertThat(result.throwable()).get().isInstanceOf(TestAbortedException.class);
+		assertThat(result.throwable().get()).hasMessage("assumption");
 	}
 
 	@Example

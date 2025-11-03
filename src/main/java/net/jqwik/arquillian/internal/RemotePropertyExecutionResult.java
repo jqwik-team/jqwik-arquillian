@@ -10,83 +10,40 @@
  */
 package net.jqwik.arquillian.internal;
 
-import java.util.*;
+import java.util.function.*;
 
 import org.jboss.arquillian.test.spi.*;
+import org.opentest4j.*;
 
 import net.jqwik.api.lifecycle.*;
+import net.jqwik.engine.execution.lifecycle.*;
 
 /**
  * Outcome of a property that ran inside the container. Seed, samples and counts stay there;
  * they reach the client as part of the transported report.
+ *
+ * <p>The engine only reports results of its own type and warns about any other implementation
+ * on every property, hence the dependency on an engine class instead of an own implementation.</p>
  */
-final class RemotePropertyExecutionResult implements PropertyExecutionResult {
-	private final Status status;
-	private final Throwable throwable;
+final class RemotePropertyExecutionResult {
+	private static final String SEED_STAYS_IN_CONTAINER = null;
 
-	private RemotePropertyExecutionResult(Status status, Throwable throwable) {
-		this.status = status;
-		this.throwable = throwable;
+	private RemotePropertyExecutionResult() {
 	}
 
 	static PropertyExecutionResult from(TestResult remoteResult) {
 		switch (remoteResult.getStatus()) {
 			case PASSED:
-				return new RemotePropertyExecutionResult(Status.SUCCESSFUL, null);
+				return PlainExecutionResult.successful();
 			case SKIPPED:
-				return new RemotePropertyExecutionResult(Status.ABORTED, remoteResult.getThrowable());
+				return PlainExecutionResult.aborted(reasonOf(remoteResult, TestAbortedException::new), SEED_STAYS_IN_CONTAINER);
 			default:
-				return new RemotePropertyExecutionResult(Status.FAILED, failureOf(remoteResult));
+				return PlainExecutionResult.failed(reasonOf(remoteResult, AssertionError::new), SEED_STAYS_IN_CONTAINER);
 		}
 	}
 
-	private static Throwable failureOf(TestResult remoteResult) {
+	private static Throwable reasonOf(TestResult remoteResult, Function<String, Throwable> describedReason) {
 		final Throwable transported = remoteResult.getThrowable();
-		return transported != null ? transported : new AssertionError(remoteResult.getDescription());
-	}
-
-	@Override
-	public Optional<String> seed() {
-		return Optional.empty();
-	}
-
-	@Override
-	public Optional<List<Object>> falsifiedParameters() {
-		return Optional.empty();
-	}
-
-	@Override
-	public Status status() {
-		return status;
-	}
-
-	@Override
-	public Optional<Throwable> throwable() {
-		return Optional.ofNullable(throwable);
-	}
-
-	@Override
-	public int countChecks() {
-		return 0;
-	}
-
-	@Override
-	public int countTries() {
-		return 0;
-	}
-
-	@Override
-	public Optional<FalsifiedSample> originalSample() {
-		return Optional.empty();
-	}
-
-	@Override
-	public Optional<ShrunkFalsifiedSample> shrunkSample() {
-		return Optional.empty();
-	}
-
-	@Override
-	public PropertyExecutionResult mapTo(Status newStatus, Throwable newThrowable) {
-		return new RemotePropertyExecutionResult(newStatus, newThrowable);
+		return transported != null ? transported : describedReason.apply(remoteResult.getDescription());
 	}
 }

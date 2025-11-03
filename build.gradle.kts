@@ -108,6 +108,7 @@ dependencies {
 	api("org.jboss.arquillian.test:arquillian-test-api")
 	api("org.jboss.arquillian.container:arquillian-container-test-api")
 
+	implementation("net.jqwik:jqwik-engine:${jqwikVersion}")
 	implementation("org.junit.platform:junit-platform-launcher:${junitPlatformVersion}")
 	implementation("org.jboss.arquillian.test:arquillian-test-spi")
 	implementation("org.jboss.arquillian.container:arquillian-container-test-spi")
