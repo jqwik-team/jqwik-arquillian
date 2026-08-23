@@ -1,6 +1,7 @@
 plugins {
 	id("java-library")
 	id("maven-publish")
+	id("checkstyle")
 }
 
 val githubProjectName = "jqwik-team"
@@ -14,6 +15,7 @@ val assertJVersion = "3.27.0"
 val jakartaEeVersion = "10.0.0"
 val payaraVersion = "6.2024.12"
 val payaraArquillianVersion = "3.1"
+val checkstyleVersion = "10.21.1"
 val jqwikArquillianVersion = "0.1.0-SNAPSHOT"
 
 // Payara Embedded reflects into JDK internals that are closed since Java 17
@@ -66,6 +68,11 @@ tasks.compileJava {
 tasks.compileTestJava {
 	options.compilerArgs.add("-parameters")
 	options.encoding = "UTF-8"
+}
+
+checkstyle {
+	toolVersion = checkstyleVersion
+	maxWarnings = 0
 }
 
 // Payara Embedded only lets the HTTP ports be configured. The remaining listeners of its default
