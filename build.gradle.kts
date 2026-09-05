@@ -7,15 +7,15 @@ plugins {
 val githubProjectName = "jqwik-team"
 val artifactId = "jqwik-arquillian"
 val moduleGroupId = "net.jqwik"
-val jqwikVersion = "1.9.2"
-val junitPlatformVersion = "1.11.3"
-val arquillianVersion = "1.9.1.Final"
+val jqwikVersion = "1.10.1"
+val junitPlatformVersion = "1.14.4"
+val arquillianVersion = "1.10.2.Final"
 val shrinkwrapVersion = "1.2.6"
-val assertJVersion = "3.27.0"
+val assertJVersion = "3.27.7"
 val jakartaEeVersion = "10.0.0"
-val payaraVersion = "6.2024.12"
+val payaraVersion = "6.2025.11"
 val payaraArquillianVersion = "3.1"
-val checkstyleVersion = "10.21.1"
+val checkstyleVersion = "14.1.0"
 val jqwikArquillianVersion = "0.1.0-SNAPSHOT"
 
 // Payara Embedded reflects into JDK internals that are closed since Java 17
@@ -81,7 +81,7 @@ val payaraPortOffset = 10000
 val payaraDomainXml = layout.buildDirectory.file("payara/domain.xml")
 val payaraDefaultPorts = listOf(8080, 8181, 4848, 7676, 3700, 3820, 3920, 8686)
 
-val shiftPayaraPorts by tasks.registering {
+val shiftPayaraPorts = tasks.register("shiftPayaraPorts") {
 	val testRuntimeClasspath = configurations.testRuntimeClasspath
 	inputs.files(testRuntimeClasspath)
 	outputs.file(payaraDomainXml)
@@ -159,5 +159,5 @@ publishing {
 }
 
 tasks.wrapper {
-	gradleVersion = "8.12" // upgrade with: ./gradlew wrapper
+	gradleVersion = "9.7.1" // upgrade with: ./gradlew wrapper
 }
