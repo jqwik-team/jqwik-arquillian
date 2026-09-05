@@ -69,7 +69,12 @@ final class ClasspathJarMerger {
 
 	private String textOf(Node node) {
 		try (InputStream content = node.getAsset().openStream()) {
-			return new String(content.readAllBytes(), StandardCharsets.UTF_8);
+			final ByteArrayOutputStream text = new ByteArrayOutputStream();
+			final byte[] buffer = new byte[8192];
+			for (int read = content.read(buffer); read != -1; read = content.read(buffer)) {
+				text.write(buffer, 0, read);
+			}
+			return new String(text.toByteArray(), StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			throw new UncheckedIOException("Unreadable service file " + node.getPath().get(), e);
 		}

@@ -84,4 +84,5 @@ server already running on the machine, so the build derives a `domain.xml` with 
 ./gradlew test
 ```
 
-The build needs JDK 21 to run the Payara Embedded tests.
+The build needs JDK 21 to run the Payara Embedded tests. The library itself targets Java 8,
+the same minimum version as jqwik.

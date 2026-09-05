@@ -25,7 +25,7 @@ import net.jqwik.arquillian.internal.*;
  * Ships jqwik, the JUnit Platform and this library to the container.
  */
 public class JqwikDeploymentAppender extends CachedAuxilliaryArchiveAppender {
-	private static final List<String> REQUIRED_LIBRARIES = List.of(
+	private static final List<String> REQUIRED_LIBRARIES = Arrays.asList(
 		"net.jqwik.api.Property",
 		"net.jqwik.engine.JqwikTestEngine",
 		"org.junit.platform.commons.JUnitException",
@@ -35,7 +35,7 @@ public class JqwikDeploymentAppender extends CachedAuxilliaryArchiveAppender {
 		"org.apiguardian.api.API"
 	);
 
-	private static final List<String> OPTIONAL_LIBRARIES = List.of(
+	private static final List<String> OPTIONAL_LIBRARIES = Arrays.asList(
 		"net.jqwik.time.api.Dates",
 		"net.jqwik.web.api.Web",
 		"net.jqwik.kotlin.api.JqwikGlobals"

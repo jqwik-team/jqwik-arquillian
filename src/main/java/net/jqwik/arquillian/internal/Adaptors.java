@@ -10,6 +10,8 @@
  */
 package net.jqwik.arquillian.internal;
 
+import java.util.*;
+
 import org.jboss.arquillian.test.spi.*;
 
 /**
@@ -25,7 +27,7 @@ final class Adaptors {
 	}
 
 	static TestRunnerAdaptor current() throws Exception {
-		final var inContainer = ContainerExecution.adaptor();
+		final Optional<TestRunnerAdaptor> inContainer = ContainerExecution.adaptor();
 		return inContainer.isPresent() ? inContainer.get() : client();
 	}
 

@@ -61,7 +61,7 @@ java {
 }
 
 tasks.compileJava {
-	options.release = 11
+	options.release = 8
 	options.encoding = "UTF-8"
 }
 
