@@ -1,6 +1,50 @@
 # jqwik-arquillian
 Arquillian support for jqwik
 
+## How to use
+
+The module is not published to Maven Central yet. Install it into the local Maven repository
+first:
+
+```
+./gradlew publishToMavenLocal
+```
+
+jqwik itself and the Arquillian test API come along as transitive dependencies. Add the Arquillian
+container adapter of your server next to the module.
+
+### Gradle
+
+```kotlin
+repositories {
+	mavenCentral()
+	mavenLocal()
+}
+
+dependencies {
+	testImplementation("net.jqwik:jqwik-arquillian:0.1.0-SNAPSHOT")
+}
+
+tasks.test {
+	useJUnitPlatform {
+		includeEngines("jqwik")
+	}
+}
+```
+
+### Maven
+
+```xml
+<dependency>
+	<groupId>net.jqwik</groupId>
+	<artifactId>jqwik-arquillian</artifactId>
+	<version>0.1.0-SNAPSHOT</version>
+	<scope>test</scope>
+</dependency>
+```
+
+Surefire finds the jqwik engine on the test class path from version 2.22.0 on.
+
 ## Usage
 
 ```java
