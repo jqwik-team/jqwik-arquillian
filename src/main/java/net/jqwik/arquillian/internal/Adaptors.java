@@ -15,7 +15,7 @@ import java.util.*;
 import org.jboss.arquillian.test.spi.*;
 
 /**
- * The client side adaptor lives for the whole JVM, like the Arquillian suite it stands for.
+ * The client side adaptor lives for the whole launcher session, like the Arquillian suite it stands for.
  * It is deliberately not kept in a jqwik store: a property running in an embedded container
  * starts a nested engine run that shares, and clears, the store repository of the client run.
  */
@@ -46,7 +46,6 @@ final class Adaptors {
 		try {
 			final TestRunnerAdaptor adaptor = TestRunnerAdaptorBuilder.build();
 			adaptor.beforeSuite();
-			Runtime.getRuntime().addShutdownHook(new Thread(() -> finishSuite(adaptor), "jqwik-arquillian-shutdown"));
 			return adaptor;
 		} catch (Exception e) {
 			suiteStartFailure = e;
@@ -54,13 +53,18 @@ final class Adaptors {
 		}
 	}
 
-	private static void finishSuite(TestRunnerAdaptor adaptor) {
+	static synchronized void finishClientSuite() {
+		if (client == null) {
+			return;
+		}
+		final TestRunnerAdaptor finished = client;
+		client = null;
 		try {
-			adaptor.afterSuite();
+			finished.afterSuite();
 		} catch (Exception e) {
 			throw new IllegalStateException("Arquillian suite did not shut down cleanly", e);
 		} finally {
-			adaptor.shutdown();
+			finished.shutdown();
 		}
 	}
 }

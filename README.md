@@ -100,6 +100,10 @@ in deciding which side does what.
   shrunk sample as report entries, which is what makes them show up nicely in IDEs and build
   tools. The Arquillian protocol carries a throwable and a description, so the report is collected
   in the container and carried back as text.
+- **jqwik has no hook for the end of a whole run.** The Arquillian suite has to be ended once,
+  after the last container class. A JVM shutdown hook is too late, because container adapters
+  remove shutdown hooks of their own while they stop. The suite is ended by a JUnit Platform
+  `LauncherSessionListener` instead.
 - **Lifecycle methods run on both sides.** `@BeforeContainer` and `@AfterContainer` methods run
   on the client and in the container. Keep them free of work that must happen only once.
 
