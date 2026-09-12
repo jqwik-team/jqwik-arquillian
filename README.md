@@ -73,6 +73,11 @@ tries and shrinking happen inside the container, and only the outcome travels ba
 Do not combine this module with `arquillian-junit5-container` on the same test class path.
 Arquillian allows exactly one `TestRunner` per deployment.
 
+jqwik, the JUnit Platform and this module are added to every deployment. Anything else a property
+uses inside the container, an assertion library for instance, has to be part of the archive when
+the container runs in a JVM of its own. An embedded container hides that, because it shares the
+test class path.
+
 ## Why the integration is a little tricky
 
 Arquillian and a property-based engine each own the execution of a test method, so the work is
@@ -129,8 +134,12 @@ server already running on the machine, so the build derives a `domain.xml` with 
 ## Building
 
 ```
-./gradlew test
+./gradlew check
 ```
 
-The build needs JDK 21 to run the Payara Embedded tests. The library itself targets Java 8,
+`test` runs against Payara Embedded. `payaraManagedTest` runs against a Payara server in a JVM of
+its own and downloads the server distribution, about 125 MB, on its first run. Both use ports
+shifted by 10000, so a Payara or GlassFish server that already runs on the machine is left alone.
+
+The build needs JDK 21 to run the Payara tests. The library itself targets Java 8,
 the same minimum version as jqwik.

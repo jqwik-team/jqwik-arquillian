@@ -81,6 +81,10 @@ val payaraPortOffset = 10000
 val payaraDomainXml = layout.buildDirectory.file("payara/domain.xml")
 val payaraDefaultPorts = listOf(8080, 8181, 4848, 7676, 3700, 3820, 3920, 8686)
 
+fun withShiftedPayaraPorts(domainXml: String) = payaraDefaultPorts.fold(domainXml) { domain, port ->
+	domain.replace("\"$port\"", "\"${port + payaraPortOffset}\"")
+}
+
 val shiftPayaraPorts = tasks.register("shiftPayaraPorts") {
 	val testRuntimeClasspath = configurations.testRuntimeClasspath
 	inputs.files(testRuntimeClasspath)
@@ -88,25 +92,83 @@ val shiftPayaraPorts = tasks.register("shiftPayaraPorts") {
 	doLast {
 		val payaraJar = testRuntimeClasspath.get().files.single { it.name.startsWith("payara-embedded-all") }
 		val defaultDomain = zipTree(payaraJar).matching { include("config/domain.xml") }.singleFile.readText()
-		val shiftedDomain = payaraDefaultPorts.fold(defaultDomain) { domain, port ->
-			domain.replace("\"$port\"", "\"${port + payaraPortOffset}\"")
-		}
-		payaraDomainXml.get().asFile.writeText(shiftedDomain)
+		payaraDomainXml.get().asFile.writeText(withShiftedPayaraPorts(defaultDomain))
 	}
 }
 
-tasks.test {
+val payaraManagedTests = "*PayaraManaged*"
+
+fun Test.reportLikeJqwikModules() {
 	useJUnitPlatform {
 		includeEngines("jqwik")
 	}
-	dependsOn(shiftPayaraPorts)
-	jvmArgs(payaraJvmArgs)
-	systemProperty("payara.domain.xml", payaraDomainXml.get().asFile.absolutePath)
 	testLogging {
 		events("passed", "skipped", "failed")
 		showStandardStreams = true
 		exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
 	}
+}
+
+tasks.test {
+	reportLikeJqwikModules()
+	filter {
+		excludeTestsMatching(payaraManagedTests)
+	}
+	dependsOn(shiftPayaraPorts)
+	jvmArgs(payaraJvmArgs)
+	systemProperty("payara.domain.xml", payaraDomainXml.get().asFile.absolutePath)
+}
+
+val payaraServer = configurations.create("payaraServer") {
+	isCanBeConsumed = false
+}
+
+// Arquillian accepts one container adapter on the class path, so the managed tests cannot share
+// the class path that carries the embedded adapter.
+val payaraManagedTestRuntime = configurations.create("payaraManagedTestRuntime") {
+	isCanBeConsumed = false
+	extendsFrom(configurations.testImplementation.get(), configurations.runtimeOnly.get())
+}
+
+val payaraServerDirectory = layout.buildDirectory.dir("payara-server")
+val payaraServerInstalled = payaraServerDirectory.map { it.file("installed") }
+
+// A running server writes into its own directory, so the marker file alone is the task output.
+val installPayaraServer = tasks.register("installPayaraServer") {
+	inputs.files(payaraServer)
+	outputs.file(payaraServerInstalled)
+	doLast {
+		val serverDirectory = payaraServerDirectory.get().asFile
+		delete(serverDirectory)
+		copy {
+			from(zipTree(payaraServer.singleFile))
+			into(serverDirectory)
+		}
+		val domainXml = serverDirectory.resolve("payara6/glassfish/domains/domain1/config/domain.xml")
+		domainXml.writeText(withShiftedPayaraPorts(domainXml.readText()))
+		payaraServerInstalled.get().asFile.writeText(payaraVersion)
+	}
+}
+
+val payaraManagedTest = tasks.register<Test>("payaraManagedTest") {
+	description = "Runs the tests that need a Payara server in a JVM of its own."
+	group = LifecycleBasePlugin.VERIFICATION_GROUP
+	reportLikeJqwikModules()
+	testClassesDirs = sourceSets.test.get().output.classesDirs
+	classpath = sourceSets.main.get().output + sourceSets.test.get().output + payaraManagedTestRuntime
+	filter {
+		includeTestsMatching(payaraManagedTests)
+	}
+	dependsOn(installPayaraServer)
+	shouldRunAfter(tasks.test)
+	systemProperty("arquillian.xml", "arquillian-payara-managed.xml")
+	systemProperty("payara.home", payaraServerDirectory.get().dir("payara6").asFile.absolutePath)
+	// The server has to load test classes compiled for the toolchain, whatever JAVA_HOME the build was started with
+	environment("JAVA_HOME", javaLauncher.get().metadata.installationPath.asFile.absolutePath)
+}
+
+tasks.check {
+	dependsOn(payaraManagedTest)
 }
 
 dependencies {
@@ -129,6 +191,9 @@ dependencies {
 	testImplementation("jakarta.platform:jakarta.jakartaee-api:${jakartaEeVersion}")
 	testRuntimeOnly("fish.payara.arquillian:arquillian-payara-server-embedded:${payaraArquillianVersion}")
 	testRuntimeOnly("fish.payara.extras:payara-embedded-all:${payaraVersion}")
+
+	payaraManagedTestRuntime("fish.payara.arquillian:arquillian-payara-server-managed:${payaraArquillianVersion}")
+	payaraServer("fish.payara.distributions:payara-web:${payaraVersion}@zip")
 }
 
 publishing {
