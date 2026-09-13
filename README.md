@@ -141,5 +141,9 @@ server already running on the machine, so the build derives a `domain.xml` with 
 its own and downloads the server distribution, about 125 MB, on its first run. Both use ports
 shifted by 10000, so a Payara or GlassFish server that already runs on the machine is left alone.
 
+`./create-release.sh` cuts a release: it builds and tests the version the build file is working
+towards, keeps the jar in `releases/`, commits and tags it, and opens the next snapshot. Nothing is
+pushed. `./create-release.sh --help` lists the options.
+
 The build needs JDK 21 to run the Payara tests. The library itself targets Java 8,
 the same minimum version as jqwik.
