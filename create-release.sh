@@ -29,7 +29,7 @@ step() { printf '\n\033[1m==> %s\033[0m\n' "$*"; }
 usage() {
 	cat <<'USAGE'
 Cuts a release: builds the module at a fixed version, keeps the jar in
-releases/ under that version, records it in a commit and an annotated tag,
+releases/ under that version, records it in a commit and a tag,
 and reopens the next revision as a snapshot. Nothing is pushed and nothing is
 published.
 
@@ -111,7 +111,8 @@ is_version "$version" \
 Set $VERSION_PROPERTY to a major.minor.patch snapshot first."
 next="$(bumped "$version" "$bump")-SNAPSHOT"
 
-tag="v$version"
+# Tag names and commit subjects follow the other jqwik modules
+tag="$version"
 git rev-parse -q --verify "refs/tags/$tag" >/dev/null \
 	&& die "Tag $tag already exists; that release has been cut."
 
@@ -162,13 +163,13 @@ printf '%s (%s)\n' "$(basename "$artifact")" "$(du -h "$artifact" | cut -f1)"
 
 step "Recording the release"
 git add "$BUILD_FILE" "$README" "$artifact"
-git commit -q -m "Release $version"
-git tag -a "$tag" -m "jqwik-arquillian $version"
+git commit -q -m "Set release version $version"
+git tag "$tag"
 
 step "Opening the next snapshot"
 set_build_version "$next"
 git add "$BUILD_FILE"
-git commit -q -m "Start $next"
+git commit -q -m "Advance version to $next"
 
 printf '\n\033[1mReleased %s\033[0m\n' "$version"
 printf '  jar    %s\n' "$artifact"
