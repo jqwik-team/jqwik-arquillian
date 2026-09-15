@@ -37,8 +37,7 @@ public class JqwikDeploymentAppender extends CachedAuxilliaryArchiveAppender {
 
 	private static final List<String> OPTIONAL_LIBRARIES = Arrays.asList(
 		"net.jqwik.time.api.Dates",
-		"net.jqwik.web.api.Web",
-		"net.jqwik.kotlin.api.JqwikGlobals"
+		"net.jqwik.web.api.Web"
 	);
 
 	@Override
@@ -51,10 +50,13 @@ public class JqwikDeploymentAppender extends CachedAuxilliaryArchiveAppender {
 
 	private Set<File> libraries() {
 		final Set<File> libraries = new LinkedHashSet<>();
-		REQUIRED_LIBRARIES.forEach(marker -> libraries.add(locationOf(find(marker)
-			.orElseThrow(() -> new IllegalStateException(marker + " is not on the class path")))));
+		REQUIRED_LIBRARIES.forEach(marker -> libraries.add(locationOf(required(marker))));
 		OPTIONAL_LIBRARIES.forEach(marker -> find(marker).map(this::locationOf).ifPresent(libraries::add));
 		return libraries;
+	}
+
+	private Class<?> required(String className) {
+		return find(className).orElseThrow(() -> new IllegalStateException(className + " is not on the class path"));
 	}
 
 	private Optional<Class<?>> find(String className) {

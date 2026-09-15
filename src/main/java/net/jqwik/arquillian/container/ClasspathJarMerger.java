@@ -11,8 +11,8 @@
 package net.jqwik.arquillian.container;
 
 import java.io.*;
-import java.nio.charset.*;
 import java.util.*;
+import java.util.regex.*;
 
 import org.jboss.shrinkwrap.api.*;
 import org.jboss.shrinkwrap.api.asset.*;
@@ -25,9 +25,10 @@ import org.jboss.shrinkwrap.api.spec.*;
  */
 final class ClasspathJarMerger {
 	private static final String SERVICES = "/META-INF/services/";
+	private static final Pattern SIGNATURE_FILE = Pattern.compile("/META-INF/[^/]+\\.(SF|DSA|RSA|EC)");
 
 	private final JavaArchive merged;
-	private final Map<ArchivePath, StringBuilder> services = new LinkedHashMap<>();
+	private final Map<ArchivePath, ByteArrayOutputStream> services = new LinkedHashMap<>();
 
 	private ClasspathJarMerger(String archiveName) {
 		merged = ShrinkWrap.create(JavaArchive.class, archiveName);
@@ -36,8 +37,7 @@ final class ClasspathJarMerger {
 	static JavaArchive merge(String archiveName, Collection<File> classpathEntries) {
 		final ClasspathJarMerger merger = new ClasspathJarMerger(archiveName);
 		classpathEntries.forEach(merger::add);
-		merger.services.forEach((path, providers) -> merger.merged.add(new StringAsset(providers.toString()), path));
-		return merger.merged;
+		return merger.withConcatenatedServices();
 	}
 
 	private void add(File classpathEntry) {
@@ -46,11 +46,22 @@ final class ClasspathJarMerger {
 				return;
 			}
 			if (path.get().startsWith(SERVICES)) {
-				services.computeIfAbsent(path, p -> new StringBuilder()).append(textOf(node)).append('\n');
+				appendProviders(services.computeIfAbsent(path, p -> new ByteArrayOutputStream()), node.getAsset());
 			} else if (!merged.contains(path)) {
 				merged.add(node.getAsset(), path);
 			}
 		});
+	}
+
+	private JavaArchive withConcatenatedServices() {
+		services.forEach((path, providers) -> merged.add(new ByteArrayAsset(providers.toByteArray()), path));
+		return merged;
+	}
+
+	private void appendProviders(ByteArrayOutputStream providers, Asset serviceFile) {
+		final byte[] content = new ByteArrayAsset(serviceFile.openStream()).getSource();
+		providers.write(content, 0, content.length);
+		providers.write('\n');
 	}
 
 	private JavaArchive contentOf(File classpathEntry) {
@@ -64,19 +75,6 @@ final class ClasspathJarMerger {
 		return name.endsWith("module-info.class")
 			|| name.equals("/META-INF/MANIFEST.MF")
 			|| name.startsWith("/META-INF/versions/")
-			|| name.matches("/META-INF/[^/]+\\.(SF|DSA|RSA|EC)");
-	}
-
-	private String textOf(Node node) {
-		try (InputStream content = node.getAsset().openStream()) {
-			final ByteArrayOutputStream text = new ByteArrayOutputStream();
-			final byte[] buffer = new byte[8192];
-			for (int read = content.read(buffer); read != -1; read = content.read(buffer)) {
-				text.write(buffer, 0, read);
-			}
-			return new String(text.toByteArray(), StandardCharsets.UTF_8);
-		} catch (IOException e) {
-			throw new UncheckedIOException("Unreadable service file " + node.getPath().get(), e);
-		}
+			|| SIGNATURE_FILE.matcher(name).matches();
 	}
 }
