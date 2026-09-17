@@ -15,18 +15,18 @@ import java.util.*;
 
 import org.jboss.arquillian.container.test.spi.*;
 import org.jboss.arquillian.test.spi.*;
+import org.junit.platform.commons.support.*;
 import org.junit.platform.engine.discovery.*;
 import org.junit.platform.launcher.*;
 import org.junit.platform.launcher.core.*;
 
 import net.jqwik.arquillian.internal.*;
+import net.jqwik.engine.*;
 
 /**
  * Runs one example or property, with all its tries and shrinking, inside the container.
  */
 public class JqwikTestRunner implements TestRunner {
-	private static final String JQWIK_ENGINE_ID = "jqwik";
-
 	@Override
 	public TestResult execute(Class<?> testClass, String methodName) {
 		final long start = System.currentTimeMillis();
@@ -36,37 +36,36 @@ public class JqwikTestRunner implements TestRunner {
 
 	private TestResult executeGuarded(Class<?> testClass, String methodName) {
 		try {
-			final TestRunnerAdaptor adaptor = TestRunnerAdaptorBuilder.build();
-			try {
-				adaptor.beforeSuite();
-				final TestResult result = ContainerExecution.call(adaptor, () -> launch(testClass, methodName));
-				adaptor.afterSuite();
-				return result;
-			} finally {
-				adaptor.shutdown();
-			}
+			return executeInSuite(TestRunnerAdaptorBuilder.build(), testClass, methodName);
 		} catch (Exception | LinkageError e) {
 			return TestResult.failed(e);
+		}
+	}
+
+	private TestResult executeInSuite(TestRunnerAdaptor adaptor, Class<?> testClass, String methodName) throws Exception {
+		try {
+			adaptor.beforeSuite();
+			final TestResult result = ContainerExecution.call(adaptor, () -> launch(testClass, methodName));
+			adaptor.afterSuite();
+			return result;
+		} finally {
+			adaptor.shutdown();
 		}
 	}
 
 	private TestResult launch(Class<?> testClass, String methodName) {
 		final LauncherDiscoveryRequest request = LauncherDiscoveryRequestBuilder.request()
 			.selectors(DiscoverySelectors.selectMethod(testClass, propertyMethod(testClass, methodName)))
-			.filters(EngineFilter.includeEngines(JQWIK_ENGINE_ID))
+			.filters(EngineFilter.includeEngines(JqwikTestEngine.ENGINE_ID))
 			.build();
 		final PropertyResultListener listener = new PropertyResultListener();
 		LauncherFactory.create().execute(request, listener);
 		return listener.result();
 	}
 
-	private Method propertyMethod(Class<?> testClass, String methodName) {
-		final List<Method> candidates = new ArrayList<>();
-		for (Class<?> type = testClass; type != null && candidates.isEmpty(); type = type.getSuperclass()) {
-			Arrays.stream(type.getDeclaredMethods())
-				.filter(method -> method.getName().equals(methodName) && !method.isSynthetic())
-				.forEach(candidates::add);
-		}
+	static Method propertyMethod(Class<?> testClass, String methodName) {
+		final List<Method> candidates = ReflectionSupport.findMethods(testClass,
+			method -> method.getName().equals(methodName) && !method.isSynthetic(), HierarchyTraversalMode.BOTTOM_UP);
 		if (candidates.size() != 1) {
 			throw new IllegalArgumentException("Arquillian addresses a property by name only. Expected exactly one method "
 				+ testClass.getName() + "#" + methodName + " but found " + candidates.size());
