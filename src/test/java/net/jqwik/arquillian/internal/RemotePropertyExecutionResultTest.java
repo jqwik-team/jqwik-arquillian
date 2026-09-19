@@ -10,6 +10,8 @@
  */
 package net.jqwik.arquillian.internal;
 
+import java.util.*;
+
 import org.jboss.arquillian.test.spi.*;
 import org.opentest4j.*;
 
@@ -40,7 +42,7 @@ class RemotePropertyExecutionResultTest {
 	@Example
 	void failureWithoutThrowableReportsTheDescription() {
 		final TestResult remote = TestResult.failed(null);
-		remote.setDescription("lost in transport");
+		remote.addDescription("lost in transport");
 
 		final PropertyExecutionResult result = RemotePropertyExecutionResult.from(remote);
 
@@ -65,5 +67,42 @@ class RemotePropertyExecutionResultTest {
 
 		assertThat(mapped.status()).isEqualTo(PropertyExecutionResult.Status.FAILED);
 		assertThat(mapped.throwable()).containsSame(cause);
+	}
+
+	@Example
+	void reportOfUnwrapsAFlattenedReport() {
+		final String report = "seed = 42" + System.lineSeparator() + "sample = [a]";
+
+		assertThat(RemotePropertyExecutionResult.reportOf(flattened(TestResult.passed(report)))).isEqualTo(report);
+	}
+
+	@Example
+	void flattenedPassWithoutReportHasAnEmptyReport() {
+		assertThat(RemotePropertyExecutionResult.reportOf(flattened(TestResult.passed()))).isEmpty();
+	}
+
+	@Example
+	void flattenedFailureWithoutThrowableReportsTheUnwrappedDescription() {
+		final TestResult remote = TestResult.failed(null);
+		remote.addDescription("lost in transport");
+
+		final PropertyExecutionResult result = RemotePropertyExecutionResult.from(flattened(remote));
+
+		assertThat(result.status()).isEqualTo(PropertyExecutionResult.Status.FAILED);
+		assertThat(result.throwable()).get().isInstanceOf(AssertionError.class);
+		assertThat(result.throwable().get()).hasMessage("lost in transport");
+	}
+
+	@Example
+	void flattenedSkipWithoutThrowableReportsTheUnwrappedDescription() {
+		final PropertyExecutionResult result = RemotePropertyExecutionResult.from(flattened(TestResult.skipped("assumption")));
+
+		assertThat(result.status()).isEqualTo(PropertyExecutionResult.Status.ABORTED);
+		assertThat(result.throwable()).get().isInstanceOf(TestAbortedException.class);
+		assertThat(result.throwable().get()).hasMessage("assumption");
+	}
+
+	private TestResult flattened(TestResult remote) {
+		return TestResult.flatten(List.of(remote));
 	}
 }

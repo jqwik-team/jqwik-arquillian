@@ -42,8 +42,8 @@ public class ArquillianPropertyHook implements AroundPropertyHook {
 	}
 
 	private PropertyExecutionResult fromContainer(TestResult remoteResult, PropertyLifecycleContext context) {
-		final String report = remoteResult.getDescription();
-		if (report != null && !report.trim().isEmpty()) {
+		final String report = RemotePropertyExecutionResult.reportOf(remoteResult);
+		if (!report.isEmpty()) {
 			context.reporter().publishValue(REMOTE_REPORT_KEY, report);
 		}
 		return RemotePropertyExecutionResult.from(remoteResult);

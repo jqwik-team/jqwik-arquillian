@@ -11,6 +11,7 @@
 package net.jqwik.arquillian.internal;
 
 import java.util.function.*;
+import java.util.regex.*;
 
 import org.jboss.arquillian.test.spi.*;
 import org.opentest4j.*;
@@ -24,11 +25,21 @@ import net.jqwik.engine.execution.lifecycle.*;
  *
  * <p>The engine only reports results of its own type and warns about any other implementation
  * on every property, hence the dependency on an engine class instead of an own implementation.</p>
+ *
+ * <p>Arquillian flattens every remote result on the client and wraps its description as
+ * {@code STATUS: 'description'}, so the report is unwrapped before it is shown.</p>
  */
 final class RemotePropertyExecutionResult {
 	private static final String SEED_STAYS_IN_CONTAINER = null;
+	private static final Pattern FLATTENED_DESCRIPTION = Pattern.compile("[A-Z]+: '(.*)'\\R?", Pattern.DOTALL);
 
 	private RemotePropertyExecutionResult() {
+	}
+
+	static String reportOf(TestResult remoteResult) {
+		final String description = remoteResult.getDescription();
+		final Matcher flattened = FLATTENED_DESCRIPTION.matcher(description);
+		return flattened.matches() ? flattened.group(1) : description;
 	}
 
 	static PropertyExecutionResult from(TestResult remoteResult) {
@@ -44,6 +55,6 @@ final class RemotePropertyExecutionResult {
 
 	private static Throwable reasonOf(TestResult remoteResult, Function<String, Throwable> describedReason) {
 		final Throwable transported = remoteResult.getThrowable();
-		return transported != null ? transported : describedReason.apply(remoteResult.getDescription());
+		return transported != null ? transported : describedReason.apply(reportOf(remoteResult));
 	}
 }
