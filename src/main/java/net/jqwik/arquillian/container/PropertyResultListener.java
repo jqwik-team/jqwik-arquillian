@@ -16,12 +16,19 @@ import org.jboss.arquillian.test.spi.*;
 import org.junit.platform.engine.*;
 import org.junit.platform.engine.reporting.*;
 import org.junit.platform.launcher.*;
+import org.opentest4j.*;
+
+import static org.jboss.arquillian.test.spi.TestResult.Status.*;
 
 /**
  * Collects what has to travel back to the client. jqwik publishes seed, original and shrunk
  * sample as report entries, not as part of the failure, so they are carried in the description.
+ *
+ * <p>The most severe outcome wins, so a class that fails after its property passed still fails it.</p>
  */
 final class PropertyResultListener implements TestExecutionListener {
+	private static final List<TestResult.Status> BY_SEVERITY = Arrays.asList(PASSED, SKIPPED, FAILED);
+
 	private final StringJoiner report = new StringJoiner(System.lineSeparator());
 	private TestResult result;
 
@@ -33,22 +40,26 @@ final class PropertyResultListener implements TestExecutionListener {
 
 	@Override
 	public void executionFinished(TestIdentifier identifier, TestExecutionResult executionResult) {
-		final boolean failedOutsideTheProperty = executionResult.getStatus() != TestExecutionResult.Status.SUCCESSFUL;
-		if (identifier.isTest() || (failedOutsideTheProperty && result == null)) {
-			result = toTestResult(executionResult);
+		final boolean containerSucceeded = !identifier.isTest() && executionResult.getStatus() == TestExecutionResult.Status.SUCCESSFUL;
+		if (!containerSucceeded) {
+			record(toTestResult(executionResult));
 		}
 	}
 
 	@Override
 	public void executionSkipped(TestIdentifier identifier, String reason) {
-		if (identifier.isTest()) {
-			result = TestResult.skipped(reason);
-		}
+		record(TestResult.skipped(new TestAbortedException(reason)));
 	}
 
 	@Override
 	public void reportingEntryPublished(TestIdentifier identifier, ReportEntry entry) {
 		entry.getKeyValuePairs().values().forEach(report::add);
+	}
+
+	private void record(TestResult outcome) {
+		if (result == null || BY_SEVERITY.indexOf(outcome.getStatus()) > BY_SEVERITY.indexOf(result.getStatus())) {
+			result = outcome;
+		}
 	}
 
 	private TestResult toTestResult(TestExecutionResult executionResult) {
