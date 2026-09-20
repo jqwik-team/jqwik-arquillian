@@ -27,4 +27,5 @@ import net.jqwik.arquillian.internal.*;
 @Retention(RetentionPolicy.RUNTIME)
 @AddLifecycleHook(ArquillianRegistrar.class)
 public @interface JqwikArquillianSupport {
+	/* Empty on purpose */
 }
