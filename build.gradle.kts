@@ -5,7 +5,7 @@ plugins {
 }
 
 val githubProjectName = "jqwik-team"
-val artifactId = "jqwik-arquillian"
+val artifactName = "jqwik-arquillian"
 val moduleGroupId = "net.jqwik"
 val jqwikVersion = "1.10.1"
 val junitPlatformVersion = "1.14.4"
@@ -45,7 +45,7 @@ repositories {
 }
 
 tasks.jar {
-	archiveBaseName.set(artifactId)
+	archiveBaseName.set(artifactName)
 	archiveVersion.set(jqwikArquillianVersion)
 	manifest {
 		attributes("Automatic-Module-Name" to "net.jqwik.arquillian")
@@ -200,13 +200,13 @@ publishing {
 	publications {
 		create<MavenPublication>("jqwikArquillian") {
 			groupId = moduleGroupId
-			artifactId = artifactId
+			artifactId = artifactName
 			from(components["java"])
 			pom {
 				groupId = moduleGroupId
-				name = artifactId
+				name = artifactName
 				description = "Jqwik Arquillian support module"
-				url = "https://github.com/$githubProjectName/$artifactId"
+				url = "https://github.com/$githubProjectName/$artifactName"
 				licenses {
 					license {
 						name = "Eclipse Public License - v 2.0"
@@ -214,9 +214,9 @@ publishing {
 					}
 				}
 				scm {
-					connection = "scm:git:git://github.com/$githubProjectName/$artifactId.git"
-					developerConnection = "scm:git:git://github.com/$githubProjectName/$artifactId.git"
-					url = "https://github.com/$githubProjectName/$artifactId"
+					connection = "scm:git:git://github.com/$githubProjectName/$artifactName.git"
+					developerConnection = "scm:git:git://github.com/$githubProjectName/$artifactName.git"
+					url = "https://github.com/$githubProjectName/$artifactName"
 				}
 			}
 		}
