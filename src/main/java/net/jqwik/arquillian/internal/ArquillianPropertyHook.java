@@ -19,18 +19,40 @@ public class ArquillianPropertyHook implements AroundPropertyHook {
 
 	@Override
 	public PropertyExecutionResult aroundProperty(PropertyLifecycleContext context, PropertyExecutor property) throws Throwable {
-		final TestRunnerAdaptor adaptor = Adaptors.current();
-		adaptor.before(context.testInstance(), context.targetMethod(), LifecycleMethodExecutor.NO_OP);
-		try {
-			return ContainerExecution.isActive() ? property.execute() : runThroughArquillian(adaptor, context, property);
-		} finally {
-			adaptor.after(context.testInstance(), context.targetMethod(), LifecycleMethodExecutor.NO_OP);
-		}
+		return aroundProperty(Adaptors.current(), context, property);
 	}
 
 	@Override
 	public int aroundPropertyProximity() {
 		return Proximity.OUTSIDE_USER_LIFECYCLE_METHODS;
+	}
+
+	PropertyExecutionResult aroundProperty(TestRunnerAdaptor adaptor, PropertyLifecycleContext context, PropertyExecutor property)
+		throws Throwable {
+
+		final PropertyExecutionResult result;
+		try {
+			adaptor.before(context.testInstance(), context.targetMethod(), LifecycleMethodExecutor.NO_OP);
+			result = ContainerExecution.isActive() ? property.execute() : runThroughArquillian(adaptor, context, property);
+		} catch (Throwable failure) {
+			ArquillianLifecycle.cleanUpAfter(failure, () -> after(adaptor, context));
+			throw failure;
+		}
+		return ArquillianLifecycle.failureOf(() -> after(adaptor, context))
+			.map(afterFailure -> withAfterFailure(result, afterFailure))
+			.orElse(result);
+	}
+
+	private void after(TestRunnerAdaptor adaptor, PropertyLifecycleContext context) throws Exception {
+		adaptor.after(context.testInstance(), context.targetMethod(), LifecycleMethodExecutor.NO_OP);
+	}
+
+	private PropertyExecutionResult withAfterFailure(PropertyExecutionResult result, Throwable afterFailure) {
+		if (result.status() != PropertyExecutionResult.Status.FAILED || !result.throwable().isPresent()) {
+			return result.mapToFailed(afterFailure);
+		}
+		result.throwable().get().addSuppressed(afterFailure);
+		return result;
 	}
 
 	private PropertyExecutionResult runThroughArquillian(TestRunnerAdaptor adaptor, PropertyLifecycleContext context,
