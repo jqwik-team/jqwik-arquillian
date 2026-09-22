@@ -12,6 +12,7 @@ package net.jqwik.arquillian.container;
 
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 import org.jboss.arquillian.container.test.spi.*;
 import org.jboss.arquillian.test.spi.*;
@@ -36,21 +37,36 @@ public class JqwikTestRunner implements TestRunner {
 
 	private TestResult executeGuarded(Class<?> testClass, String methodName) {
 		try {
-			return executeInSuite(TestRunnerAdaptorBuilder.build(), testClass, methodName);
-		} catch (Exception | LinkageError e) {
-			return TestResult.failed(e);
+			return executeInSuite(TestRunnerAdaptorBuilder.build(), () -> launch(testClass, methodName));
+		} catch (Throwable t) {
+			return TestResult.failed(t);
 		}
 	}
 
-	private TestResult executeInSuite(TestRunnerAdaptor adaptor, Class<?> testClass, String methodName) throws Exception {
+	static TestResult executeInSuite(TestRunnerAdaptor adaptor, Callable<TestResult> launch) {
+		final TestResult result = resultInStartedSuite(adaptor, launch);
+		return ArquillianLifecycle.failureOf(() -> ArquillianLifecycle.endSuite(adaptor))
+			.map(endFailure -> withEndFailure(result, endFailure))
+			.orElse(result);
+	}
+
+	private static TestResult resultInStartedSuite(TestRunnerAdaptor adaptor, Callable<TestResult> launch) {
 		try {
 			adaptor.beforeSuite();
-			final TestResult result = ContainerExecution.call(adaptor, () -> launch(testClass, methodName));
-			adaptor.afterSuite();
-			return result;
-		} finally {
-			adaptor.shutdown();
+			return ContainerExecution.call(adaptor, launch);
+		} catch (Throwable t) {
+			return TestResult.failed(t);
 		}
+	}
+
+	private static TestResult withEndFailure(TestResult result, Throwable endFailure) {
+		if (result.getStatus() == TestResult.Status.FAILED && result.getThrowable() != null) {
+			result.getThrowable().addSuppressed(endFailure);
+			return result;
+		}
+		final TestResult failed = TestResult.failed(endFailure);
+		failed.addDescription(result.getDescription());
+		return failed;
 	}
 
 	private TestResult launch(Class<?> testClass, String methodName) {

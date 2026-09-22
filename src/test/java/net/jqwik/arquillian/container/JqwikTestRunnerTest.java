@@ -10,11 +10,91 @@
  */
 package net.jqwik.arquillian.container;
 
+import java.util.*;
+
+import org.jboss.arquillian.test.spi.*;
+
 import net.jqwik.api.*;
+import net.jqwik.arquillian.internal.*;
 
 import static org.assertj.core.api.Assertions.*;
 
 class JqwikTestRunnerTest {
+	@Example
+	void launchesInsideAStartedSuite() {
+		final RecordingAdaptor adaptor = new RecordingAdaptor();
+
+		final TestResult result = JqwikTestRunner.executeInSuite(adaptor, () -> {
+			adaptor.calls().add(ContainerExecution.isActive() ? "launch in container" : "launch");
+			return TestResult.passed();
+		});
+
+		assertThat(result.getStatus()).isEqualTo(TestResult.Status.PASSED);
+		assertThat(adaptor.calls()).containsExactly("beforeSuite", "launch in container", "afterSuite", "shutdown");
+	}
+
+	@Example
+	void endsTheSuiteWhenItFailedToStart() {
+		final IllegalStateException startFailure = new IllegalStateException("start");
+		final RecordingAdaptor adaptor = new RecordingAdaptor().failing("beforeSuite", startFailure);
+
+		final TestResult result = JqwikTestRunner.executeInSuite(adaptor, TestResult::passed);
+
+		assertThat(result.getThrowable()).isSameAs(startFailure);
+		assertThat(adaptor.calls()).containsExactly("beforeSuite", "afterSuite", "shutdown");
+	}
+
+	@Example
+	void endsTheSuiteWhenTheLaunchThrows() {
+		final IllegalArgumentException lookupFailure = new IllegalArgumentException("lookup");
+		final RecordingAdaptor adaptor = new RecordingAdaptor();
+
+		final TestResult result = JqwikTestRunner.executeInSuite(adaptor, () -> {
+			throw lookupFailure;
+		});
+
+		assertThat(result.getThrowable()).isSameAs(lookupFailure);
+		assertThat(adaptor.calls()).containsExactly("beforeSuite", "afterSuite", "shutdown");
+	}
+
+	@Example
+	void endsTheSuiteWhenTheLaunchThrowsAnError() {
+		final ServiceConfigurationError unloadableEngine = new ServiceConfigurationError("engine");
+		final RecordingAdaptor adaptor = new RecordingAdaptor();
+
+		final TestResult result = JqwikTestRunner.executeInSuite(adaptor, () -> {
+			throw unloadableEngine;
+		});
+
+		assertThat(result.getThrowable()).isSameAs(unloadableEngine);
+		assertThat(adaptor.calls()).containsExactly("beforeSuite", "afterSuite", "shutdown");
+	}
+
+	@Example
+	void failureToEndFailsAPassedPropertyAndKeepsItsReport() {
+		final IllegalStateException stopFailure = new IllegalStateException("stop");
+		final RecordingAdaptor adaptor = new RecordingAdaptor().failing("afterSuite", stopFailure);
+
+		final TestResult result = JqwikTestRunner.executeInSuite(adaptor, () -> TestResult.passed("seed = 42"));
+
+		assertThat(result.getStatus()).isEqualTo(TestResult.Status.FAILED);
+		assertThat(result.getThrowable()).isSameAs(stopFailure);
+		assertThat(result.getDescription()).isEqualTo("seed = 42");
+	}
+
+	@Example
+	void errorWhileEndingJoinsAFailedProperty() {
+		final AssertionError falsified = new AssertionError("falsified");
+		final NoClassDefFoundError stopFailure = new NoClassDefFoundError("observer");
+		final RecordingAdaptor adaptor = new RecordingAdaptor().failing("afterSuite", stopFailure);
+		final TestResult falsifiedResult = TestResult.failed(falsified);
+
+		final TestResult result = JqwikTestRunner.executeInSuite(adaptor, () -> falsifiedResult);
+
+		assertThat(result).isSameAs(falsifiedResult);
+		assertThat(falsified.getSuppressed()).containsExactly(stopFailure);
+	}
+
 	@Example
 	void findsAPropertyDeclaredInASuperclass() throws NoSuchMethodException {
 		assertThat(JqwikTestRunner.propertyMethod(Subclass.class, "inherited"))
