@@ -20,51 +20,17 @@ import org.jboss.arquillian.test.spi.*;
  * starts a nested engine run that shares, and clears, the store repository of the client run.
  */
 final class Adaptors {
-	private static TestRunnerAdaptor client;
-	private static Exception suiteStartFailure;
+	private static final ClientSuite CLIENT_SUITE = new ClientSuite(TestRunnerAdaptorBuilder::build);
 
 	private Adaptors() {
 	}
 
-	static TestRunnerAdaptor current() throws Exception {
+	static TestRunnerAdaptor current() throws Throwable {
 		final Optional<TestRunnerAdaptor> inContainer = ContainerExecution.adaptor();
-		return inContainer.isPresent() ? inContainer.get() : client();
+		return inContainer.isPresent() ? inContainer.get() : CLIENT_SUITE.adaptor();
 	}
 
-	private static synchronized TestRunnerAdaptor client() throws Exception {
-		// A container cannot be started twice, and a retry would bury the reason the first start failed
-		if (suiteStartFailure != null) {
-			throw suiteStartFailure;
-		}
-		if (client == null) {
-			client = startSuite();
-		}
-		return client;
-	}
-
-	private static TestRunnerAdaptor startSuite() throws Exception {
-		try {
-			final TestRunnerAdaptor adaptor = TestRunnerAdaptorBuilder.build();
-			adaptor.beforeSuite();
-			return adaptor;
-		} catch (Exception e) {
-			suiteStartFailure = e;
-			throw e;
-		}
-	}
-
-	static synchronized void finishClientSuite() {
-		if (client == null) {
-			return;
-		}
-		final TestRunnerAdaptor finished = client;
-		client = null;
-		try {
-			finished.afterSuite();
-		} catch (Exception e) {
-			throw new IllegalStateException("Arquillian suite did not shut down cleanly", e);
-		} finally {
-			finished.shutdown();
-		}
+	static void finishClientSuite() {
+		CLIENT_SUITE.finish();
 	}
 }
