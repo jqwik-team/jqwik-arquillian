@@ -1,3 +1,6 @@
+[![CI](https://github.com/jqwik-team/jqwik-arquillian/actions/workflows/gradle.yml/badge.svg)](https://github.com/jqwik-team/jqwik-arquillian/actions/workflows/gradle.yml)
+[![Version](https://img.shields.io/github/v/tag/jqwik-team/jqwik-arquillian?sort=semver&label=version)](https://github.com/jqwik-team/jqwik-arquillian/tags)
+
 # jqwik-arquillian
 Arquillian support for jqwik
 
