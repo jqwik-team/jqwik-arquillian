@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2026 jqwik team
-# Copyright (c) 2026 Adeptum AB and Adam Waldenberg
+# Copyright (c) 2025-2026 jqwik team
+# Copyright (c) 2025-2026 Adeptum AB and Adam Waldenberg
 #
 # This program and the accompanying materials are made
 # available under the terms of the Eclipse Public License 2.0
