@@ -83,7 +83,7 @@ class ClientSuiteTest {
 
 	@Example
 	void failedStartStaysFailedUntilTheSessionCloses() throws Throwable {
-		final IllegalStateException startFailure = new IllegalStateException("start");
+		final NoClassDefFoundError startFailure = new NoClassDefFoundError("adapter");
 		final RecordingAdaptor restarted = new RecordingAdaptor();
 		final Iterator<RecordingAdaptor> builds = Arrays.asList(
 			new RecordingAdaptor().failing("beforeSuite", startFailure),

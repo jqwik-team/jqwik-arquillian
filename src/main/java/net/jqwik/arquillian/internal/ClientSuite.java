@@ -15,7 +15,7 @@ import java.util.function.*;
 import org.jboss.arquillian.test.spi.*;
 
 /**
- * The Arquillian suite on the client, started by the first property that needs it and ended with the launcher session.
+ * The Arquillian suite on the client, started by the first Arquillian test class and ended with the launcher session.
  */
 final class ClientSuite {
 	private final Supplier<TestRunnerAdaptor> adaptors;
@@ -27,7 +27,7 @@ final class ClientSuite {
 	}
 
 	synchronized TestRunnerAdaptor adaptor() throws Throwable {
-		// Every property would otherwise retry a start that already failed, and bury the reason it failed first
+		// Every class and property would otherwise retry a start that already failed, and bury the reason it failed first
 		if (startFailure != null) {
 			throw startFailure;
 		}

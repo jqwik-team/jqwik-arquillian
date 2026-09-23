@@ -26,15 +26,18 @@ class ArquillianPropertyHookTest {
 	void passedPropertyRunsBetweenBeforeAndAfter() throws Throwable {
 		final RecordingAdaptor adaptor = new RecordingAdaptor();
 
-		final PropertyExecutionResult result = hook.aroundProperty(adaptor, context, PlainExecutionResult::successful);
+		final PropertyExecutionResult result = hook.aroundProperty(adaptor, context, () -> {
+			adaptor.calls().add("property");
+			return PlainExecutionResult.successful();
+		});
 
 		assertThat(result.status()).isEqualTo(PropertyExecutionResult.Status.SUCCESSFUL);
-		assertThat(adaptor.calls()).containsExactly("before", "test", "after");
+		assertThat(adaptor.calls()).containsExactly("before", "test", "property", "after");
 	}
 
 	@Example
 	void afterRunsWhenBeforeFails() {
-		final IllegalStateException enrichmentFailure = new IllegalStateException("enrichment");
+		final NoClassDefFoundError enrichmentFailure = new NoClassDefFoundError("enricher");
 		final RecordingAdaptor adaptor = new RecordingAdaptor().failing("before", enrichmentFailure);
 
 		assertThatThrownBy(() -> hook.aroundProperty(adaptor, context, PlainExecutionResult::successful)).isSameAs(enrichmentFailure);
