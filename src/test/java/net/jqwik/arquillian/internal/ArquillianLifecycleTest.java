@@ -25,6 +25,27 @@ class ArquillianLifecycleTest {
 	}
 
 	@Example
+	void failedShutdownJoinsTheAfterSuiteFailure() {
+		final IllegalStateException stopFailure = new IllegalStateException("stop");
+		final IllegalStateException shutdownFailure = new IllegalStateException("shutdown");
+		final RecordingAdaptor adaptor = new RecordingAdaptor()
+			.failing("afterSuite", stopFailure)
+			.failing("shutdown", shutdownFailure);
+
+		assertThatThrownBy(() -> ArquillianLifecycle.endSuite(adaptor)).isSameAs(stopFailure);
+		assertThat(stopFailure.getSuppressed()).containsExactly(shutdownFailure);
+	}
+
+	@Example
+	void outOfMemoryEndsTheRunInsteadOfBecomingAFailure() {
+		final OutOfMemoryError outOfMemory = new OutOfMemoryError("heap");
+
+		assertThatThrownBy(() -> ArquillianLifecycle.failureOf(() -> {
+			throw outOfMemory;
+		})).isSameAs(outOfMemory);
+	}
+
+	@Example
 	void failureOfHandsBackWhatTheStepThrew() {
 		final IllegalStateException stepFailure = new IllegalStateException("step");
 

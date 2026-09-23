@@ -19,7 +19,8 @@ import org.jboss.arquillian.test.spi.*;
  * run their after callbacks. A failure while ending never hides the failure that came first.
  *
  * <p>Errors count as failures too: Arquillian hands an observer's {@code AssertionError} or
- * {@code NoClassDefFoundError} through unchanged.</p>
+ * {@code NoClassDefFoundError} through unchanged. Only an {@code OutOfMemoryError} ends the run
+ * right away, as it does in jqwik.</p>
  */
 public final class ArquillianLifecycle {
 	private ArquillianLifecycle() {
@@ -28,15 +29,19 @@ public final class ArquillianLifecycle {
 	public static void endSuite(TestRunnerAdaptor adaptor) throws Exception {
 		try {
 			adaptor.afterSuite();
-		} finally {
-			adaptor.shutdown();
+		} catch (Throwable t) {
+			cleanUpAfter(t, adaptor::shutdown);
+			throw t;
 		}
+		adaptor.shutdown();
 	}
 
 	public static Optional<Throwable> failureOf(Step step) {
 		try {
 			step.run();
 			return Optional.empty();
+		} catch (OutOfMemoryError e) {
+			throw e;
 		} catch (Throwable t) {
 			return Optional.of(t);
 		}
