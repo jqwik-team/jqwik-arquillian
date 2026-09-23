@@ -81,40 +81,6 @@ uses inside the container, an assertion library for instance, has to be part of 
 the container runs in a JVM of its own. An embedded container hides that, because it shares the
 test class path.
 
-## Why the integration is a little tricky
-
-Arquillian and a property-based engine each own the execution of a test method, so the work is
-in deciding which side does what.
-
-- **Arquillian addresses a test by name only.** Its remote surface is
-  `TestRunner.execute(Class, String methodName)`. There is no channel for arguments, so generated
-  values cannot be sent to the container try by try. The only workable split is to run the entire
-  property inside the container, which means a second jqwik engine run is started there for a
-  single method.
-- **The client has to hand a property over without running it.** jqwik's `AroundPropertyHook`
-  makes that possible: the hook leaves out `property.execute()` and asks Arquillian instead. The
-  outcome that comes back is turned into the result type the engine reports on, so the client
-  shows the property like any other.
-- **Client and container can be the same JVM.** With an embedded container a system property
-  cannot tell the in-container run from the client run. This module marks the in-container run
-  with a thread local, set on the thread that serves the Arquillian request.
-- **Two engine runs can share one JVM.** jqwik's stores belong to an engine run. With an embedded
-  container the nested run and the client run see the same store repository, so this module keeps
-  the Arquillian state that has to outlive a property outside of `Store`.
-- **jqwik has to travel as complete jars.** API and engine find each other through
-  `META-INF/services` files. ShrinkWrap's `addPackages` copies classes only, so the auxiliary
-  archive is merged from the real jars, with service files of the same name concatenated.
-- **The report travels separately from the failure.** jqwik publishes seed, original sample and
-  shrunk sample as report entries, which is what makes them show up nicely in IDEs and build
-  tools. The Arquillian protocol carries a throwable and a description, so the report is collected
-  in the container and carried back as text.
-- **jqwik has no hook for the end of a whole run.** The Arquillian suite has to be ended once,
-  after the last container class. A JVM shutdown hook is too late, because container adapters
-  remove shutdown hooks of their own while they stop. The suite is ended by a JUnit Platform
-  `LauncherSessionListener` instead.
-- **Lifecycle methods run on both sides.** `@BeforeContainer` and `@AfterContainer` methods run
-  on the client and in the container. Keep them free of work that must happen only once.
-
 ## The documentation situation
 
 Arquillian documents how to write tests and how to write a container adapter. It does not
@@ -129,10 +95,6 @@ lifecycle twice, and how results and exceptions are serialised are all implement
 On the jqwik side the lifecycle hooks chapter of the user guide, together with the existing
 modules such as jqwik-spring and jqwik-micronaut, was enough to find the right hooks, their
 ordering through proximity and the registration pattern used here.
-
-Container adapters add their own gaps. Payara Embedded, used for this module's own tests, only
-lets the HTTP ports be configured. Its remaining listeners collide with any Payara or GlassFish
-server already running on the machine, so the build derives a `domain.xml` with shifted ports.
 
 ## Building
 
