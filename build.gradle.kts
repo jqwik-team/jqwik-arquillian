@@ -17,7 +17,7 @@ val payaraVersion = "6.2025.11"
 val payaraArquillianVersion = "3.1"
 val checkstyleVersion = "14.1.0"
 val lombokVersion = "1.18.48"
-val jqwikArquillianVersion = "0.1.0-SNAPSHOT"
+val jqwikArquillianVersion = "0.1.0"
 
 // Payara Embedded reflects into JDK internals that are closed since Java 17
 val payaraJvmArgs = listOf(

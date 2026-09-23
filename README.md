@@ -25,7 +25,7 @@ repositories {
 }
 
 dependencies {
-	testImplementation("net.jqwik:jqwik-arquillian:0.1.0-SNAPSHOT")
+	testImplementation("net.jqwik:jqwik-arquillian:0.1.0")
 }
 
 tasks.test {
@@ -41,7 +41,7 @@ tasks.test {
 <dependency>
 	<groupId>net.jqwik</groupId>
 	<artifactId>jqwik-arquillian</artifactId>
-	<version>0.1.0-SNAPSHOT</version>
+	<version>0.1.0</version>
 	<scope>test</scope>
 </dependency>
 ```
