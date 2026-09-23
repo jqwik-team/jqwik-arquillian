@@ -83,13 +83,10 @@ test class path.
 
 ## The documentation situation
 
+Some of this was tricky ... Figuring out the Arquilian side specifically.
 Arquillian documents how to write tests and how to write a container adapter. It does not
-document how to integrate a new test framework. `TestRunnerAdaptor`, `TestRunner`,
-`AuxiliaryArchiveAppender`, `RemoteLoadableExtension` and the rule that only one `TestRunner` may
-be present are explained nowhere but in the Javadoc, which is mostly one line per type. The
-contract has to be read out of the existing integrations in `arquillian-core`: `junit5`, `testng`
-and, as the closest model for a method that runs many times, the dormant Spock test runner. How
-the client decides between a local and a remote run, how the in-container side avoids running the
+document how to integrate a new test framework.
+How the client decides between a local and a remote run, how the in-container side avoids running the
 lifecycle twice, and how results and exceptions are serialised are all implementation knowledge.
 
 On the jqwik side the lifecycle hooks chapter of the user guide, together with the existing
