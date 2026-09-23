@@ -31,29 +31,23 @@ public class JqwikTestRunner implements TestRunner {
 	@Override
 	public TestResult execute(Class<?> testClass, String methodName) {
 		final long start = System.currentTimeMillis();
-		final TestResult result = executeGuarded(testClass, methodName);
-		return result.setStart(start).setEnd(System.currentTimeMillis());
-	}
-
-	private TestResult executeGuarded(Class<?> testClass, String methodName) {
-		try {
-			return executeInSuite(TestRunnerAdaptorBuilder.build(), () -> launch(testClass, methodName));
-		} catch (Throwable t) {
-			return TestResult.failed(t);
-		}
+		return resultOf(() -> executeInSuite(TestRunnerAdaptorBuilder.build(), () -> launch(testClass, methodName)))
+			.setStart(start).setEnd(System.currentTimeMillis());
 	}
 
 	static TestResult executeInSuite(TestRunnerAdaptor adaptor, Callable<TestResult> launch) {
-		final TestResult result = resultInStartedSuite(adaptor, launch);
+		final TestResult result = resultOf(() -> {
+			adaptor.beforeSuite();
+			return ContainerExecution.call(adaptor, launch);
+		});
 		return ArquillianLifecycle.failureOf(() -> ArquillianLifecycle.endSuite(adaptor))
 			.map(endFailure -> withEndFailure(result, endFailure))
 			.orElse(result);
 	}
 
-	private static TestResult resultInStartedSuite(TestRunnerAdaptor adaptor, Callable<TestResult> launch) {
+	private static TestResult resultOf(Callable<TestResult> execution) {
 		try {
-			adaptor.beforeSuite();
-			return ContainerExecution.call(adaptor, launch);
+			return execution.call();
 		} catch (Throwable t) {
 			return TestResult.failed(t);
 		}

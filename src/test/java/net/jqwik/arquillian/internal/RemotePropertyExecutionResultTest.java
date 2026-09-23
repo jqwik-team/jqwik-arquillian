@@ -46,8 +46,7 @@ class RemotePropertyExecutionResultTest {
 
 		final PropertyExecutionResult result = RemotePropertyExecutionResult.from(remote);
 
-		assertThat(result.throwable()).get().isInstanceOf(AssertionError.class);
-		assertThat(result.throwable().get()).hasMessage("lost in transport");
+		assertThat(result.throwable().get()).isInstanceOf(AssertionError.class).hasMessage("lost in transport");
 	}
 
 	@Example
@@ -55,8 +54,7 @@ class RemotePropertyExecutionResultTest {
 		final PropertyExecutionResult result = RemotePropertyExecutionResult.from(TestResult.skipped("assumption"));
 
 		assertThat(result.status()).isEqualTo(PropertyExecutionResult.Status.ABORTED);
-		assertThat(result.throwable()).get().isInstanceOf(TestAbortedException.class);
-		assertThat(result.throwable().get()).hasMessage("assumption");
+		assertThat(result.throwable().get()).isInstanceOf(TestAbortedException.class).hasMessage("assumption");
 	}
 
 	@Example
@@ -89,8 +87,7 @@ class RemotePropertyExecutionResultTest {
 		final PropertyExecutionResult result = RemotePropertyExecutionResult.from(flattened(remote));
 
 		assertThat(result.status()).isEqualTo(PropertyExecutionResult.Status.FAILED);
-		assertThat(result.throwable()).get().isInstanceOf(AssertionError.class);
-		assertThat(result.throwable().get()).hasMessage("lost in transport");
+		assertThat(result.throwable().get()).isInstanceOf(AssertionError.class).hasMessage("lost in transport");
 	}
 
 	@Example
@@ -98,8 +95,7 @@ class RemotePropertyExecutionResultTest {
 		final PropertyExecutionResult result = RemotePropertyExecutionResult.from(flattened(TestResult.skipped("assumption")));
 
 		assertThat(result.status()).isEqualTo(PropertyExecutionResult.Status.ABORTED);
-		assertThat(result.throwable()).get().isInstanceOf(TestAbortedException.class);
-		assertThat(result.throwable().get()).hasMessage("assumption");
+		assertThat(result.throwable().get()).isInstanceOf(TestAbortedException.class).hasMessage("assumption");
 	}
 
 	private TestResult flattened(TestResult remote) {
