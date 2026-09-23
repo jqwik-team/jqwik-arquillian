@@ -6,7 +6,6 @@ plugins {
 
 val githubProjectName = "jqwik-team"
 val artifactName = "jqwik-arquillian"
-val moduleGroupId = "net.jqwik"
 val jqwikVersion = "1.10.1"
 val junitPlatformVersion = "1.14.4"
 val arquillianVersion = "1.10.2.Final"
@@ -36,7 +35,7 @@ val payaraJvmArgs = listOf(
 	"--add-opens=java.logging/java.util.logging=ALL-UNNAMED"
 )
 
-group = moduleGroupId
+group = "net.jqwik"
 version = jqwikArquillianVersion
 description = "Jqwik Arquillian support module"
 
@@ -45,8 +44,6 @@ repositories {
 }
 
 tasks.jar {
-	archiveBaseName.set(artifactName)
-	archiveVersion.set(jqwikArquillianVersion)
 	manifest {
 		attributes("Automatic-Module-Name" to "net.jqwik.arquillian")
 	}
@@ -199,13 +196,10 @@ dependencies {
 publishing {
 	publications {
 		create<MavenPublication>("jqwikArquillian") {
-			groupId = moduleGroupId
-			artifactId = artifactName
 			from(components["java"])
 			pom {
-				groupId = moduleGroupId
 				name = artifactName
-				description = "Jqwik Arquillian support module"
+				description = project.description
 				url = "https://github.com/$githubProjectName/$artifactName"
 				licenses {
 					license {
