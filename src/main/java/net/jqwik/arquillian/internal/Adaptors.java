@@ -12,6 +12,7 @@ package net.jqwik.arquillian.internal;
 
 import java.util.*;
 
+import lombok.*;
 import org.jboss.arquillian.test.spi.*;
 
 /**
@@ -19,11 +20,9 @@ import org.jboss.arquillian.test.spi.*;
  * It is deliberately not kept in a jqwik store: a property running in an embedded container
  * starts a nested engine run that shares, and clears, the store repository of the client run.
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class Adaptors {
 	private static final ClientSuite CLIENT_SUITE = new ClientSuite(TestRunnerAdaptorBuilder::build);
-
-	private Adaptors() {
-	}
 
 	static TestRunnerAdaptor current() throws Throwable {
 		final Optional<TestRunnerAdaptor> inContainer = ContainerExecution.adaptor();

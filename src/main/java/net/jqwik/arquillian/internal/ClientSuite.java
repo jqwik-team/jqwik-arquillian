@@ -12,19 +12,17 @@ package net.jqwik.arquillian.internal;
 
 import java.util.function.*;
 
+import lombok.*;
 import org.jboss.arquillian.test.spi.*;
 
 /**
  * The Arquillian suite on the client, started by the first Arquillian test class and ended with the launcher session.
  */
+@RequiredArgsConstructor
 final class ClientSuite {
 	private final Supplier<TestRunnerAdaptor> adaptors;
 	private TestRunnerAdaptor adaptor;
 	private Throwable startFailure;
-
-	ClientSuite(Supplier<TestRunnerAdaptor> adaptors) {
-		this.adaptors = adaptors;
-	}
 
 	synchronized TestRunnerAdaptor adaptor() throws Throwable {
 		// Every class and property would otherwise retry a start that already failed, and bury the reason it failed first

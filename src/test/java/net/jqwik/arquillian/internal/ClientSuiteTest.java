@@ -24,7 +24,7 @@ class ClientSuiteTest {
 
 		assertThat(suite.adaptor()).isSameAs(adaptor);
 		assertThat(suite.adaptor()).isSameAs(adaptor);
-		assertThat(adaptor.calls()).containsExactly("beforeSuite");
+		assertThat(adaptor.getCalls()).containsExactly("beforeSuite");
 	}
 
 	@Example
@@ -36,7 +36,7 @@ class ClientSuiteTest {
 		suite.finish();
 		suite.finish();
 
-		assertThat(adaptor.calls()).containsExactly("beforeSuite", "afterSuite", "shutdown");
+		assertThat(adaptor.getCalls()).containsExactly("beforeSuite", "afterSuite", "shutdown");
 	}
 
 	@Example
@@ -47,7 +47,7 @@ class ClientSuiteTest {
 		suite.adaptor();
 
 		assertThatIllegalStateException().isThrownBy(suite::finish).withCause(stopFailure);
-		assertThat(adaptor.calls()).endsWith("shutdown");
+		assertThat(adaptor.getCalls()).endsWith("shutdown");
 	}
 
 	@Example
@@ -56,7 +56,7 @@ class ClientSuiteTest {
 		final RecordingAdaptor adaptor = new RecordingAdaptor().failing("beforeSuite", startFailure);
 
 		assertThatThrownBy(suiteBuilding(adaptor)::adaptor).isSameAs(startFailure);
-		assertThat(adaptor.calls()).containsExactly("beforeSuite", "afterSuite", "shutdown");
+		assertThat(adaptor.getCalls()).containsExactly("beforeSuite", "afterSuite", "shutdown");
 	}
 
 	@Example
@@ -69,7 +69,7 @@ class ClientSuiteTest {
 
 		assertThatThrownBy(suiteBuilding(adaptor)::adaptor).isSameAs(startFailure);
 		assertThat(startFailure.getSuppressed()).containsExactly(stopFailure);
-		assertThat(adaptor.calls()).endsWith("shutdown");
+		assertThat(adaptor.getCalls()).endsWith("shutdown");
 	}
 
 	@Example
@@ -78,7 +78,7 @@ class ClientSuiteTest {
 		final RecordingAdaptor adaptor = new RecordingAdaptor().failing("beforeSuite", missingAdapterClass);
 
 		assertThatThrownBy(suiteBuilding(adaptor)::adaptor).isSameAs(missingAdapterClass);
-		assertThat(adaptor.calls()).containsExactly("beforeSuite", "afterSuite", "shutdown");
+		assertThat(adaptor.getCalls()).containsExactly("beforeSuite", "afterSuite", "shutdown");
 	}
 
 	@Example

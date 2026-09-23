@@ -13,6 +13,7 @@ package net.jqwik.arquillian.internal;
 import java.lang.reflect.*;
 import java.util.*;
 
+import lombok.*;
 import org.jboss.arquillian.test.spi.*;
 import org.jboss.arquillian.test.spi.event.suite.*;
 
@@ -21,6 +22,7 @@ import org.jboss.arquillian.test.spi.event.suite.*;
  * Like Arquillian for a property that runs as client, it runs the test method itself.
  */
 public class RecordingAdaptor implements TestRunnerAdaptor {
+	@Getter
 	private final List<String> calls = new ArrayList<>();
 	private final Map<String, Throwable> failures = new HashMap<>();
 
@@ -32,10 +34,6 @@ public class RecordingAdaptor implements TestRunnerAdaptor {
 	public RecordingAdaptor failing(String call, Error failure) {
 		failures.put(call, failure);
 		return this;
-	}
-
-	public List<String> calls() {
-		return calls;
 	}
 
 	@Override

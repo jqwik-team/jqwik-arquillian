@@ -14,6 +14,7 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 
+import lombok.*;
 import org.jboss.shrinkwrap.api.*;
 import org.jboss.shrinkwrap.api.asset.*;
 import org.jboss.shrinkwrap.api.importer.*;
@@ -23,6 +24,7 @@ import org.jboss.shrinkwrap.api.spec.*;
  * Merges class path entries into one archive. Service files of the same name are concatenated,
  * because jqwik wires itself through many of them and a plain merge keeps only the first.
  */
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 final class ClasspathJarMerger {
 	private static final String SERVICES = "/META-INF/services/";
 	private static final Pattern SIGNATURE_FILE = Pattern.compile("/META-INF/[^/]+\\.(SF|DSA|RSA|EC)");
@@ -30,12 +32,8 @@ final class ClasspathJarMerger {
 	private final JavaArchive merged;
 	private final Map<ArchivePath, ByteArrayOutputStream> services = new LinkedHashMap<>();
 
-	private ClasspathJarMerger(String archiveName) {
-		merged = ShrinkWrap.create(JavaArchive.class, archiveName);
-	}
-
 	static JavaArchive merge(String archiveName, Collection<File> classpathEntries) {
-		final ClasspathJarMerger merger = new ClasspathJarMerger(archiveName);
+		final ClasspathJarMerger merger = new ClasspathJarMerger(ShrinkWrap.create(JavaArchive.class, archiveName));
 		classpathEntries.forEach(merger::add);
 		return merger.withConcatenatedServices();
 	}

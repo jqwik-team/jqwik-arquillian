@@ -12,6 +12,7 @@ package net.jqwik.arquillian.internal;
 
 import java.util.*;
 
+import lombok.*;
 import org.jboss.arquillian.test.spi.*;
 
 /**
@@ -22,10 +23,8 @@ import org.jboss.arquillian.test.spi.*;
  * {@code NoClassDefFoundError} through unchanged. Only an {@code OutOfMemoryError} ends the run
  * right away, as it does in jqwik.</p>
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ArquillianLifecycle {
-	private ArquillianLifecycle() {
-	}
-
 	public static void endSuite(TestRunnerAdaptor adaptor) throws Exception {
 		try {
 			adaptor.afterSuite();

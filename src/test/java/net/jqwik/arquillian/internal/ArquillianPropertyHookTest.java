@@ -27,12 +27,12 @@ class ArquillianPropertyHookTest {
 		final RecordingAdaptor adaptor = new RecordingAdaptor();
 
 		final PropertyExecutionResult result = hook.aroundProperty(adaptor, context, () -> {
-			adaptor.calls().add("property");
+			adaptor.getCalls().add("property");
 			return PlainExecutionResult.successful();
 		});
 
 		assertThat(result.status()).isEqualTo(PropertyExecutionResult.Status.SUCCESSFUL);
-		assertThat(adaptor.calls()).containsExactly("before", "test", "property", "after");
+		assertThat(adaptor.getCalls()).containsExactly("before", "test", "property", "after");
 	}
 
 	@Example
@@ -41,7 +41,7 @@ class ArquillianPropertyHookTest {
 		final RecordingAdaptor adaptor = new RecordingAdaptor().failing("before", enrichmentFailure);
 
 		assertThatThrownBy(() -> hook.aroundProperty(adaptor, context, PlainExecutionResult::successful)).isSameAs(enrichmentFailure);
-		assertThat(adaptor.calls()).containsExactly("before", "after");
+		assertThat(adaptor.getCalls()).containsExactly("before", "after");
 	}
 
 	@Example
@@ -62,7 +62,7 @@ class ArquillianPropertyHookTest {
 		final RecordingAdaptor adaptor = new RecordingAdaptor().failing("test", protocolFailure);
 
 		assertThatThrownBy(() -> hook.aroundProperty(adaptor, context, PlainExecutionResult::successful)).isSameAs(protocolFailure);
-		assertThat(adaptor.calls()).containsExactly("before", "test", "after");
+		assertThat(adaptor.getCalls()).containsExactly("before", "test", "after");
 	}
 
 	@Example

@@ -13,6 +13,7 @@ package net.jqwik.arquillian.internal;
 import java.util.function.*;
 import java.util.regex.*;
 
+import lombok.*;
 import org.jboss.arquillian.test.spi.*;
 import org.opentest4j.*;
 
@@ -29,12 +30,10 @@ import net.jqwik.engine.execution.lifecycle.*;
  * <p>Arquillian flattens every remote result on the client and wraps its description as
  * {@code STATUS: 'description'}, so the report is unwrapped before it is shown.</p>
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class RemotePropertyExecutionResult {
 	private static final String SEED_STAYS_IN_CONTAINER = null;
 	private static final Pattern FLATTENED_DESCRIPTION = Pattern.compile("[A-Z]+: '(.*)'\\R?", Pattern.DOTALL);
-
-	private RemotePropertyExecutionResult() {
-	}
 
 	static String reportOf(TestResult remoteResult) {
 		final String description = remoteResult.getDescription();

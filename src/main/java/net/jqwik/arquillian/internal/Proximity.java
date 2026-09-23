@@ -10,13 +10,13 @@
  */
 package net.jqwik.arquillian.internal;
 
+import lombok.*;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class Proximity {
 	/**
 	 * jqwik runs its annotated lifecycle methods at -10. Staying below that deploys and enriches
 	 * before the first user lifecycle method and cleans up after the last one.
 	 */
 	static final int OUTSIDE_USER_LIFECYCLE_METHODS = -15;
-
-	private Proximity() {
-	}
 }

@@ -21,7 +21,7 @@ class ArquillianLifecycleTest {
 		final RecordingAdaptor adaptor = new RecordingAdaptor().failing("afterSuite", stopFailure);
 
 		assertThatThrownBy(() -> ArquillianLifecycle.endSuite(adaptor)).isSameAs(stopFailure);
-		assertThat(adaptor.calls()).containsExactly("afterSuite", "shutdown");
+		assertThat(adaptor.getCalls()).containsExactly("afterSuite", "shutdown");
 	}
 
 	@Example

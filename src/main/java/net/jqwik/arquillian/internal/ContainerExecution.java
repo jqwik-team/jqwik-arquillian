@@ -13,6 +13,7 @@ package net.jqwik.arquillian.internal;
 import java.util.*;
 import java.util.concurrent.*;
 
+import lombok.*;
 import org.jboss.arquillian.test.spi.*;
 
 /**
@@ -20,11 +21,9 @@ import org.jboss.arquillian.test.spi.*;
  * shares the JVM, and possibly the class loader, with the client, so neither a system
  * property nor a plain static can tell the two sides apart.
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ContainerExecution {
 	private static final ThreadLocal<TestRunnerAdaptor> ADAPTOR = new ThreadLocal<>();
-
-	private ContainerExecution() {
-	}
 
 	public static boolean isActive() {
 		return adaptor().isPresent();

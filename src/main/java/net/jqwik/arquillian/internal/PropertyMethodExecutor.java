@@ -13,6 +13,7 @@ package net.jqwik.arquillian.internal;
 import java.lang.reflect.*;
 import java.util.*;
 
+import lombok.*;
 import org.jboss.arquillian.test.spi.*;
 
 import net.jqwik.api.lifecycle.*;
@@ -21,15 +22,11 @@ import net.jqwik.api.lifecycle.*;
  * Arquillian only invokes this executor when the property runs as client. A property that runs
  * in-container is started there by name, and the executor is never invoked.
  */
+@RequiredArgsConstructor
 final class PropertyMethodExecutor implements TestMethodExecutor {
 	private final PropertyLifecycleContext context;
 	private final PropertyExecutor property;
 	private PropertyExecutionResult localResult;
-
-	PropertyMethodExecutor(PropertyLifecycleContext context, PropertyExecutor property) {
-		this.context = context;
-		this.property = property;
-	}
 
 	Optional<PropertyExecutionResult> localResult() {
 		return Optional.ofNullable(localResult);

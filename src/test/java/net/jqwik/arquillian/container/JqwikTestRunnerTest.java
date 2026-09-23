@@ -25,12 +25,12 @@ class JqwikTestRunnerTest {
 		final RecordingAdaptor adaptor = new RecordingAdaptor();
 
 		final TestResult result = JqwikTestRunner.executeInSuite(adaptor, () -> {
-			adaptor.calls().add(ContainerExecution.isActive() ? "launch in container" : "launch");
+			adaptor.getCalls().add(ContainerExecution.isActive() ? "launch in container" : "launch");
 			return TestResult.passed();
 		});
 
 		assertThat(result.getStatus()).isEqualTo(TestResult.Status.PASSED);
-		assertThat(adaptor.calls()).containsExactly("beforeSuite", "launch in container", "afterSuite", "shutdown");
+		assertThat(adaptor.getCalls()).containsExactly("beforeSuite", "launch in container", "afterSuite", "shutdown");
 	}
 
 	@Example
@@ -41,7 +41,7 @@ class JqwikTestRunnerTest {
 		final TestResult result = JqwikTestRunner.executeInSuite(adaptor, TestResult::passed);
 
 		assertThat(result.getThrowable()).isSameAs(startFailure);
-		assertThat(adaptor.calls()).containsExactly("beforeSuite", "afterSuite", "shutdown");
+		assertThat(adaptor.getCalls()).containsExactly("beforeSuite", "afterSuite", "shutdown");
 	}
 
 	@Example
@@ -54,7 +54,7 @@ class JqwikTestRunnerTest {
 		});
 
 		assertThat(result.getThrowable()).isSameAs(lookupFailure);
-		assertThat(adaptor.calls()).containsExactly("beforeSuite", "afterSuite", "shutdown");
+		assertThat(adaptor.getCalls()).containsExactly("beforeSuite", "afterSuite", "shutdown");
 	}
 
 	@Example
@@ -67,7 +67,7 @@ class JqwikTestRunnerTest {
 		});
 
 		assertThat(result.getThrowable()).isSameAs(unloadableEngine);
-		assertThat(adaptor.calls()).containsExactly("beforeSuite", "afterSuite", "shutdown");
+		assertThat(adaptor.getCalls()).containsExactly("beforeSuite", "afterSuite", "shutdown");
 	}
 
 	@Example
