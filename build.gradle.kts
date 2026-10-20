@@ -1,6 +1,7 @@
 plugins {
 	id("java-library")
 	id("maven-publish")
+	id("signing")
 	id("checkstyle")
 	id("io.freefair.lombok") version "9.7.0"
 }
@@ -18,6 +19,7 @@ val payaraArquillianVersion = "3.1"
 val checkstyleVersion = "14.1.0"
 val lombokVersion = "1.18.48"
 val jqwikArquillianVersion = "0.1.1-SNAPSHOT"
+val isSnapshotRelease = jqwikArquillianVersion.endsWith("-SNAPSHOT")
 
 // Payara Embedded reflects into JDK internals that are closed since Java 17
 val payaraJvmArgs = listOf(
@@ -233,6 +235,12 @@ publishing {
 				}
 			}
 		}
+	}
+}
+
+signing {
+	if (!isSnapshotRelease) {
+		sign(publishing.publications["jqwikArquillian"])
 	}
 }
 
