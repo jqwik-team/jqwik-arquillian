@@ -236,6 +236,21 @@ publishing {
 			}
 		}
 	}
+	repositories {
+		maven {
+			// The name makes Gradle read the portalTokenUsername and portalTokenPassword properties
+			name = "portalToken"
+			url = uri(
+				if (isSnapshotRelease) "https://central.sonatype.com/repository/maven-snapshots/"
+				else "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
+			)
+			credentials(PasswordCredentials::class)
+		}
+	}
+}
+
+tasks.publish {
+	dependsOn(tasks.build)
 }
 
 signing {
