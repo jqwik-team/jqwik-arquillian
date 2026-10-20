@@ -176,3 +176,4 @@ printf '  jar    %s\n' "$artifact"
 printf '  tag    %s\n' "$tag"
 printf '  next   %s\n' "$next"
 printf '\nNothing was pushed and nothing was published.\n'
+printf 'Publish the release from its tag: git checkout %s && ./gradlew publish\n' "$tag"

@@ -105,7 +105,8 @@ shifted by 10000, so a Payara or GlassFish server that already runs on the machi
 
 `./create-release.sh` cuts a release: it builds and tests the version the build file is working
 towards, keeps the jar in `releases/`, commits and tags it, and opens the next snapshot. Nothing is
-pushed. `./create-release.sh --help` lists the options.
+pushed or published; check out the tag to publish the release. `./create-release.sh --help` lists
+the options.
 
 `./gradlew publish` builds and verifies the module and uploads it to Maven Central through the
 Sonatype Central Portal. A snapshot goes to the portal's snapshot repository. A release is signed,
