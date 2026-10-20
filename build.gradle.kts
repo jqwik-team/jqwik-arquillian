@@ -249,8 +249,18 @@ publishing {
 	}
 }
 
+val signalPublishToCentralSonatype = tasks.register<Exec>("signalPublishToCentralSonatype") {
+	description = "Announces the uploaded release to central.sonatype.com."
+	group = PublishingPlugin.PUBLISH_TASK_GROUP
+	commandLine("./signalPublishToCentralSonatype.sh")
+	environment("PORTAL_TOKEN", providers.gradleProperty("portalTokenBase64").getOrElse(""))
+}
+
 tasks.publish {
 	dependsOn(tasks.build)
+	if (!isSnapshotRelease) {
+		finalizedBy(signalPublishToCentralSonatype)
+	}
 }
 
 signing {

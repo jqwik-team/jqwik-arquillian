@@ -107,5 +107,14 @@ shifted by 10000, so a Payara or GlassFish server that already runs on the machi
 towards, keeps the jar in `releases/`, commits and tags it, and opens the next snapshot. Nothing is
 pushed. `./create-release.sh --help` lists the options.
 
+`./gradlew publish` builds and verifies the module and uploads it to Maven Central through the
+Sonatype Central Portal. A snapshot goes to the portal's snapshot repository. A release is signed,
+uploaded to the OSSRH staging API and announced to central.sonatype.com, where the deployment is
+published. The task reads these properties, best kept in `~/.gradle/gradle.properties`:
+
+- `portalTokenUsername` and `portalTokenPassword`: the user token of the portal
+- `portalTokenBase64`: the same token as `username:password`, base64 encoded
+- `signing.keyId`, `signing.password` and `signing.secretKeyRingFile`: the key releases are signed with
+
 The build needs JDK 21 to run the Payara tests. The library itself targets Java 8,
 the same minimum version as jqwik.
