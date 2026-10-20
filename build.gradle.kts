@@ -213,6 +213,19 @@ publishing {
 						url = "http://www.eclipse.org/legal/epl-v20.html"
 					}
 				}
+				developers {
+					developer {
+						id = "adam-waldenberg"
+						name = "Adam Waldenberg"
+						email = "adam@adeptum.se"
+						organization = "Adeptum AB"
+					}
+					developer {
+						id = "jlink"
+						name = "Johannes Link"
+						email = "business@johanneslink.net"
+					}
+				}
 				scm {
 					connection = "scm:git:git://github.com/$githubProjectName/$artifactName.git"
 					developerConnection = "scm:git:git://github.com/$githubProjectName/$artifactName.git"
