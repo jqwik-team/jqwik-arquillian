@@ -8,6 +8,7 @@ plugins {
 
 val githubProjectName = "jqwik-team"
 val artifactName = "jqwik-arquillian"
+val moduleGroupId = "net.jqwik"
 val jqwikVersion = "1.10.1"
 val junitPlatformVersion = "1.14.4"
 val arquillianVersion = "1.10.2.Final"
@@ -204,9 +205,12 @@ dependencies {
 publishing {
 	publications {
 		create<MavenPublication>("jqwikArquillian") {
+            groupId = moduleGroupId
+            artifactId = artifactName
 			from(components["java"])
 			pom {
-				name = artifactName
+                groupId = moduleGroupId
+                name = artifactName
 				description = project.description
 				url = "https://github.com/$githubProjectName/$artifactName"
 				licenses {
